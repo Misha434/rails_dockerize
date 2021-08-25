@@ -1,0 +1,18 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Todos</h1>
+
+<% @todos.each do |todo| %>
+  <%= todo.task %>
+    <%= link_to 'Show', todo %>
+    <%= link_to 'Edit', edit_todo_path(todo) %>
+    <%= link_to 'Destroy', todo, method: :delete, data: { confirm: 'Are you sure?' } %>
+    <br>
+    <% if todo.image.attached? %>
+      <%= image_tag todo.image.variant(resize: "480x720") %>
+    <% end %>
+    <br>
+  <% end %>
+<br>
+
+<%= link_to 'New Todo', new_todo_path %>

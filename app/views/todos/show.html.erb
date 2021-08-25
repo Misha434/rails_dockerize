@@ -1,0 +1,12 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Task:</strong>
+  <%= @todo.task %>
+</p>
+<% if @todo.image.attached? %>
+  <%= image_tag @todo.image.variant(resize: "480x720") %>
+<% end %>
+
+<%= link_to 'Edit', edit_todo_path(@todo) %> |
+<%= link_to 'Back', todos_path %>
