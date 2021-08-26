@@ -48,12 +48,16 @@ jobs:
 
       # run tests
       - run:
-          name: run tests
+          name: run test
           command: |
-            DISABLE_SPRING=true bundle exec rails test
-
-
-      # collect reports
+            mkdir /tmp/test-results
+            TEST_FILES="$(circleci tests glob "spec/systems/todos_spec.rb" | \
+              circleci tests split --split-by=timings)"
+            bundle exec rspec \
+              --format progress \
+              --out /tmp/test-results/rspec.xml \
+              --format progress \
+              $TEST_FILES
       - store_test_results:
           path: /tmp/test-results
       - store_artifacts:
