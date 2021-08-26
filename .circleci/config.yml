@@ -22,16 +22,16 @@ jobs:
     # 実際の処理内容
     steps:
       - checkout
-      - run:
-          name: "Node.js 更新"
-          command: |
-            curl -sSL "https://nodejs.org/dist/v14.17.5/node-v14.17.5-linux-x64.tar.xz" | sudo tar --strip-components=2 -xJ -C /usr/local/bin/ node-v14.17.5-linux-x64/bin/node
       # Download and cache dependencies
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "Gemfile.lock" }}
             # fallback to using the latest cache if no exact match is found
             - v1-dependencies-
+      - run:
+          name: "Node.js 更新"
+          command: |
+            curl -sSL "https://nodejs.org/dist/v14.17.5/node-v14.17.5-linux-x64.tar.xz" | sudo tar --strip-components=2 -xJ -C /usr/local/bin/ node-v14.17.5-linux-x64/bin/node
       # runのたびに実行
       - run:
           name: install dependencies
