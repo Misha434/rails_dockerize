@@ -2,7 +2,6 @@ version: 2.1
 
 orbs:
   ruby: circleci/ruby@1.1.1
-  node: circleci/node:12.13-stretch-browsers
   browser-tools: circleci/browser-tools@1.0.1
 
 jobs:
