@@ -15,7 +15,7 @@ jobs:
     steps:
       - checkout
       - ruby/install-deps:
-          bundler-version: 2.1.4
+          bundler-version: 1.17.2
       - node/install-packages: 
           pkg-manager: yarn
 
