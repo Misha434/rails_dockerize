@@ -20,6 +20,10 @@ services:
       - db
     stdin_open: true
     tty: true
+    environment:
+      - "SELENIUM_DRIVER_URL=http://selenium_chrome:4444/wd/hub"
+  selenium_chrome:
+    image: selenium/standalone-chrome-debug
 volumes:
   mysql-data:
     driver: local

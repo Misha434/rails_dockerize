@@ -2,17 +2,20 @@
 
 <h1>Todos</h1>
 
+<ol class="todos">
 <% @todos.each do |todo| %>
-  <%= todo.task %>
-    <%= link_to 'Show', todo %>
-    <%= link_to 'Edit', edit_todo_path(todo) %>
-    <%= link_to 'Destroy', todo, method: :delete, data: { confirm: 'Are you sure?' } %>
-    <br>
-    <% if todo.image.attached? %>
-      <%= image_tag todo.image.variant(resize: "480x720") %>
+  <li id= <%= todo.id %> >
+    <%= todo.task %>
+      <%= link_to 'Show', todo %>
+      <%= link_to 'Edit', edit_todo_path(todo) %>
+      <%= link_to 'Destroy', todo, method: :delete, data: { confirm: 'Are you sure?' } %>
+      <br>
+      <% if todo.image.attached? %>
+        <%= image_tag todo.image.variant(resize: "480x720") %>
+      <% end %>
+      <br>
     <% end %>
-    <br>
-  <% end %>
+  </li>
 <br>
 
 <%= link_to 'New Todo', new_todo_path %>

@@ -18,10 +18,9 @@ RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - \
     libmagickwand-dev
 COPY Gemfile /todo_app/Gemfile
 COPY Gemfile.lock /todo_app/Gemfile.lock
-RUN gem install bundler \
-    && bundle install \
+RUN bundle install \
     && yarn install --check-files
-COPY . /myapp
+COPY . /todo_app
 
 # Add a script to be executed every time the container starts.
 COPY entrypoint.sh /usr/bin/
