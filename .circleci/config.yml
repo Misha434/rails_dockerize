@@ -16,6 +16,9 @@ jobs:
       - checkout
       - ruby/install-deps:
           bundler-version: 1.17.2
+      - run:
+        - command: |
+            node -v
       - node/install-packages: 
           pkg-manager: yarn
 
