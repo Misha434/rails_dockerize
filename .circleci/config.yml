@@ -35,7 +35,6 @@ jobs:
           command: |
             gem install bundler -v 1.17.2
             bundle install --jobs=4 --retry=3 --path vendor/bundle
-            yarn install --check-files
 
       - save_cache:
           paths:
