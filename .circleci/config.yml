@@ -9,6 +9,7 @@ jobs:
   build:
     docker:
       - image: circleci/ruby:2.6.3-stretch-node
+      - image: circleci/node:12.13-stretch-browsers
     environment:
       BUNDLE_JOBS: "3"
       BUNDLE_RETRY: "3"
@@ -16,9 +17,6 @@ jobs:
       - checkout
       - ruby/install-deps:
           bundler-version: 1.17.2
-      - run:
-        - command: |
-            "node -v"
       - node/install-packages: 
           pkg-manager: yarn
 
