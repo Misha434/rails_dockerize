@@ -6,7 +6,7 @@ orbs:
   ruby: circleci/ruby@1.0
   node: circleci/node@2
   browser-tools: circleci/browser-tools@1.0.1
-
+  heroku: circleci/heroku@1.2.6
 jobs:
   build: # our first job, named "build"
     docker:
@@ -51,7 +51,7 @@ jobs:
     # here we set TWO docker images.
     docker:
       - image: circleci/ruby:2.6.3-node-browsers # this is our primary docker image, where step commands run.
-        
+
       - image: circleci/postgres:9.5-alpine
         environment: # add POSTGRES environment variables.
           POSTGRES_USER: root
@@ -96,7 +96,16 @@ jobs:
           command: bundle exec rails db:schema:load --trace
       # Run rspec in parallel
       - ruby/rspec-test
-
+  deploy:
+    executor: heroku/default
+    steps:
+      - checkout
+      - heroku/install
+      - heroku/deploy-via-git:
+          maintenance-mode: true
+      - run:
+          name: DB migrate
+          command: heroku run rails db:migrate --app $HEROKU_APP_NAME
 # We use workflows to orchestrate the jobs that we declared above.
 workflows:
   version: 2
@@ -106,3 +115,10 @@ workflows:
       - test:         # Then run test,
           requires:   # Test requires that build passes for it to run.
             - build   # Finally, run the build job.
+      - deploy:
+          requires:
+            - build
+            - test
+          filters:
+            branches:
+              only: main
