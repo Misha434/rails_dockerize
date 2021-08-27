@@ -41,7 +41,6 @@ jobs:
           command: |
             gem install bundler -v 1.17.2
             bundle install --jobs=4 --retry=3 --path vendor/bundle
-            gem install rspec_junit_formatter
             yarn install --check-files
 
   test:  # our next job, called "test"
@@ -83,6 +82,7 @@ jobs:
           command: |
             gem install bundler -v 1.17.2
             bundle install --jobs=4 --retry=3 --path vendor/bundle
+            gem install rspec_junit_formatter
             yarn install --check-files
       # Here we make sure that the secondary container boots
       # up before we run operations on the database.
