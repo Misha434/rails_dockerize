@@ -51,7 +51,7 @@ jobs:
     # here we set TWO docker images.
     docker:
       - image: circleci/ruby:2.6.3-node-browsers # this is our primary docker image, where step commands run.
-        
+
       - image: circleci/postgres:9.5-alpine
         environment: # add POSTGRES environment variables.
           POSTGRES_USER: root
@@ -102,7 +102,7 @@ jobs:
       - checkout
       - heroku/install
       - run:
-        command: >
+        command: |
           echo "The command above installs Heroku, the command below deploys.
           What you do inbetween is up to you!"
       - heroku/deploy-via-git
