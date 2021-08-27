@@ -24,9 +24,6 @@ jobs:
       # use the node orb to install our packages
       # specifying that we use `yarn` and to cache dependencies with `yarn.lock`
       # learn more: https://circleci.com/docs/2.0/caching/
-      # - node/install-packages:
-      #     pkg-manager: yarn
-      #     cache-key: "yarn.lock"
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "Gemfile.lock" }}
