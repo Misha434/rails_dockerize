@@ -5,6 +5,7 @@ version: 2.1 # Use 2.1 to enable using orbs and other features.
 orbs:
   ruby: circleci/ruby@1.0
   node: circleci/node@2
+  browser-tools: circleci/browser-tools@1.0.1
 
 jobs:
   build: # our first job, named "build"
@@ -67,13 +68,6 @@ jobs:
     # A series of steps to run, some are similar to those in "build".
     steps:
       - checkout
-      - run:
-          name: Download Selenium
-          command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
-      - run:
-          name: Start Selenium
-          command: java -jar selenium-server-standalone-3.5.3.jar -log test-reports/selenium.log
-          background: true
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "Gemfile.lock" }}
@@ -90,6 +84,8 @@ jobs:
             gem install bundler -v 1.17.2
             bundle install --jobs=4 --retry=3 --path vendor/bundle
             yarn install --check-files
+      - browser-tools/install-chrome
+      - browser-tools/install-chromedriver
       # Here we make sure that the secondary container boots
       # up before we run operations on the database.
       - run:
