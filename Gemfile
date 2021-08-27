@@ -34,6 +34,7 @@ group :development, :test do
   gem 'byebug', platforms: [:mri, :mingw, :x64_mingw]
   gem 'rspec-rails', '~> 4.0.1'
   gem 'factory_bot_rails'
+  gem 'rspec_junit_formatter'
 end
 
 group :development do

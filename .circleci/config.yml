@@ -1,67 +1,108 @@
-version: 2.1
+version: 2.1 # Use 2.1 to enable using orbs and other features.
+
+# Declare the orbs that we'll use in our config.
+# read more about orbs: https://circleci.com/docs/2.0/using-orbs/
 orbs:
-  ruby: circleci/ruby@0.1.2
-  node: circleci/node@4.0.0
-  # browser-tools: circleci/browser-tools@1.0.1
+  ruby: circleci/ruby@1.0
+  node: circleci/node@2
+  browser-tools: circleci/browser-tools@1.0.1
 
 jobs:
-  build:
+  build: # our first job, named "build"
     docker:
-      - image: circleci/ruby:2.6.3-stretch-node
-    environment:
-      BUNDLE_JOBS: "3"
-      BUNDLE_RETRY: "3"
-    steps:
-      - checkout
-      - ruby/install-deps:
-          bundler-version: 1.17.2
-      - node/install-packages: 
-          pkg-manager: yarn
-
-  test:
-    docker:
-      - image: circleci/ruby:2.6.3-stretch-node
-      - image: circleci/postgres:11.7
-        environment:
-          POSTGRES_USER: circleci
+      - image: circleci/ruby:2.6.3-node-browsers # use a tailored CircleCI docker image.
+      - image: circleci/postgres:9.5-alpine
+        environment: # add POSTGRES environment variables.
+          POSTGRES_USER: root
           POSTGRES_DB: todo_app_test
-          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_PASSWORD: ""
+    working_directory: ~/todo_app
+
+    steps:
+      - checkout # pull down our git code.
+      # - ruby/install-deps # use the ruby orb to install dependencies
+      # use the node orb to install our packages
+      # specifying that we use `yarn` and to cache dependencies with `yarn.lock`
+      # learn more: https://circleci.com/docs/2.0/caching/
+      # - node/install-packages:
+      #     pkg-manager: yarn
+      #     cache-key: "yarn.lock"
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "Gemfile.lock" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+      - run:
+          name: "Update Node.js"
+          command: |
+            curl -sSL "https://nodejs.org/dist/v14.17.5/node-v14.17.5-linux-x64.tar.xz" | sudo tar --strip-components=2 -xJ -C /usr/local/bin/ node-v14.17.5-linux-x64/bin/node
+      # runのたびに実行
+      - run:
+          name: install dependencies
+          command: |
+            gem install bundler -v 1.17.2
+            bundle install --jobs=4 --retry=3 --path vendor/bundle
+            yarn install --check-files
+
+  test:  # our next job, called "test"
+    # we run "parallel job containers" to enable speeding up our tests;
+    # this splits our tests across multiple containers.
+    parallelism: 3
+    # here we set TWO docker images.
+    docker:
+      - image: circleci/ruby:2.6.3-node-browsers # this is our primary docker image, where step commands run.
+        
+      - image: circleci/postgres:9.5-alpine
+        environment: # add POSTGRES environment variables.
+          POSTGRES_USER: root
+          POSTGRES_DB: todo_app_test
+          POSTGRES_PASSWORD: ""
+    # environment variables specific to Ruby/Rails, applied to the primary container.
     environment:
       BUNDLE_JOBS: "3"
       BUNDLE_RETRY: "3"
       PGHOST: 127.0.0.1
-      PGUSER: circleci
+      PGUSER: root
       PGPASSWORD: ""
-      TZ: "/usr/share/zoneinfo/Asia/Tokyo"
       RAILS_ENV: test
-
+    # A series of steps to run, some are similar to those in "build".
     steps:
       - checkout
-      - ruby/install-deps:
-          bundler-version: 1.17.2
-      - node/install-packages: 
-          pkg-manager: yarn
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "Gemfile.lock" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+      - run:
+          name: "Update Node.js"
+          command: |
+            curl -sSL "https://nodejs.org/dist/v14.17.5/node-v14.17.5-linux-x64.tar.xz" | sudo tar --strip-components=2 -xJ -C /usr/local/bin/ node-v14.17.5-linux-x64/bin/node
+      # runのたびに実行
+      - run:
+          name: install dependencies
+          command: |
+            gem install bundler -v 1.17.2
+            bundle install --jobs=4 --retry=3 --path vendor/bundle
+            yarn install --check-files
       - browser-tools/install-chrome
       - browser-tools/install-chromedriver
+      # Here we make sure that the secondary container boots
+      # up before we run operations on the database.
       - run:
-          name: DB Initializing
-          command: |
-            dockerize -wait tcp://localhost:5432 -timeout 1m
-            bundle exec rails db:schema:load
+          name: Wait for DB
+          command: dockerize -wait tcp://localhost:5432 -timeout 1m
       - run:
-          name: rspec
-          command: |
-            bundle exec rspec --format RspecJunitFormatter \
-                              --out test_results/rspec.xml \
-                              --format documentation
-      - store_test_results:
-          path: test_results
+          name: Database setup
+          command: bundle exec rails db:schema:load --trace
+      # Run rspec in parallel
+      - ruby/rspec-test
 
+# We use workflows to orchestrate the jobs that we declared above.
 workflows:
   version: 2
-  build_and_test:
-    jobs:
-      - build
-      - test:
-          requires:
-            - build
+  build_and_test:     # The name of our workflow is "build_and_test"
+    jobs:             # The list of jobs we run as part of this workflow.
+      - build         # Run build first.
+      - test:         # Then run test,
+          requires:   # Test requires that build passes for it to run.
+            - build   # Finally, run the build job.
