@@ -115,6 +115,6 @@ workflows:
       - test:         # Then run test,
           requires:   # Test requires that build passes for it to run.
             - build   # Finally, run the build job.
-      heroku_deploy:
-        jobs:
-          - deploy
+  heroku_deploy:
+    jobs:
+      - deploy
