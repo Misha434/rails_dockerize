@@ -4,7 +4,7 @@ RSpec.describe Todo, type: :system do
 
   before do
     @todo = FactoryBot.build(:todo)
-    visit '/'
+    visit root_path
   end
   describe '#index' do
     it 'has title Todos' do
