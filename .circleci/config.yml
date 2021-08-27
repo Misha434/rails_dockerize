@@ -9,19 +9,40 @@ orbs:
 jobs:
   build: # our first job, named "build"
     docker:
-      - image: cimg/ruby:2.7-node # use a tailored CircleCI docker image.
-        auth:
-          username: mydockerhub-user
-          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+      - image: circleci/ruby:2.6.3-node-browsers # use a tailored CircleCI docker image.
+      - image: circleci/postgres:9.5-alpine
+        environment: # add POSTGRES environment variables.
+          POSTGRES_USER: root
+          POSTGRES_DB: todo_app_test
+          POSTGRES_PASSWORD: ""
+    working_directory: ~/todo_app
+
     steps:
       - checkout # pull down our git code.
-      - ruby/install-deps # use the ruby orb to install dependencies
+      # - ruby/install-deps # use the ruby orb to install dependencies
       # use the node orb to install our packages
       # specifying that we use `yarn` and to cache dependencies with `yarn.lock`
       # learn more: https://circleci.com/docs/2.0/caching/
-      - node/install-packages:
-          pkg-manager: yarn
-          cache-key: "yarn.lock"
+      # - node/install-packages:
+      #     pkg-manager: yarn
+      #     cache-key: "yarn.lock"
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "Gemfile.lock" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+      - run:
+          name: "Update Node.js"
+          command: |
+            curl -sSL "https://nodejs.org/dist/v14.17.5/node-v14.17.5-linux-x64.tar.xz" | sudo tar --strip-components=2 -xJ -C /usr/local/bin/ node-v14.17.5-linux-x64/bin/node
+      # runのたびに実行
+      - run:
+          name: install dependencies
+          command: |
+            gem install bundler -v 1.17.2
+            bundle install --jobs=4 --retry=3 --path vendor/bundle
+            gem install rspec_junit_formatter
+            yarn install --check-files
 
   test:  # our next job, called "test"
     # we run "parallel job containers" to enable speeding up our tests;
@@ -29,33 +50,40 @@ jobs:
     parallelism: 3
     # here we set TWO docker images.
     docker:
-      - image: cimg/ruby:2.7-node # this is our primary docker image, where step commands run.
-        auth:
-          username: mydockerhub-user
-          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+      - image: circleci/ruby:2.6.3-node-browsers # this is our primary docker image, where step commands run.
+        
       - image: circleci/postgres:9.5-alpine
-        auth:
-          username: mydockerhub-user
-          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
         environment: # add POSTGRES environment variables.
-          POSTGRES_USER: circleci-demo-ruby
-          POSTGRES_DB: rails_blog_test
+          POSTGRES_USER: root
+          POSTGRES_DB: todo_app_test
           POSTGRES_PASSWORD: ""
     # environment variables specific to Ruby/Rails, applied to the primary container.
     environment:
       BUNDLE_JOBS: "3"
       BUNDLE_RETRY: "3"
       PGHOST: 127.0.0.1
-      PGUSER: circleci-demo-ruby
+      PGUSER: root
       PGPASSWORD: ""
       RAILS_ENV: test
     # A series of steps to run, some are similar to those in "build".
     steps:
       - checkout
-      - ruby/install-deps
-      - node/install-packages:
-          pkg-manager: yarn
-          cache-key: "yarn.lock"
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "Gemfile.lock" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+      - run:
+          name: "Update Node.js"
+          command: |
+            curl -sSL "https://nodejs.org/dist/v14.17.5/node-v14.17.5-linux-x64.tar.xz" | sudo tar --strip-components=2 -xJ -C /usr/local/bin/ node-v14.17.5-linux-x64/bin/node
+      # runのたびに実行
+      - run:
+          name: install dependencies
+          command: |
+            gem install bundler -v 1.17.2
+            bundle install --jobs=4 --retry=3 --path vendor/bundle
+            yarn install --check-files
       # Here we make sure that the secondary container boots
       # up before we run operations on the database.
       - run:
