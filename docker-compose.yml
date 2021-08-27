@@ -5,8 +5,12 @@ services:
     ports:
       - "5432:5432"
     environment:
-      - "POSTGRES_USER=postgres"
-      - "POSTGRES_PASSWORD=mysecretpassword1234"
+      # - "POSTGRES_USER=postgres"
+      # - "POSTGRES_PASSWORD=mysecretpassword1234"
+      - "DATABASE_HOST=localhost"
+      - "DATABASE_PORT=5432"
+      - "DATABASE_USER=root"
+      - "DATABASE_PASSWORD=password "
   web:
     build: .
     command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
@@ -26,6 +30,6 @@ services:
       - "SELENIUM_DRIVER_URL=http://selenium_chrome:4444/wd/hub"
   selenium_chrome:
     image: selenium/standalone-chrome-debug
-volumes:
-  mysql-data:
-    driver: local
+# volumes:
+#   mysql-data:
+#     driver: local
