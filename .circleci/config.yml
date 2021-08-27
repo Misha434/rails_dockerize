@@ -6,6 +6,7 @@ orbs:
   ruby: circleci/ruby@1.0
   node: circleci/node@2
   browser-tools: circleci/browser-tools@1.0.1
+  heroku-container: pbrisbin/heroku-container@1.0.0
 
 jobs:
   build: # our first job, named "build"
@@ -96,7 +97,16 @@ jobs:
           command: bundle exec rails db:schema:load --trace
       # Run rspec in parallel
       - ruby/rspec-test
-
+  deploy:
+    executor: heroku/default
+    steps:
+      - checkout
+      - heroku/install
+      - run:
+        command: >
+          echo "The command above installs Heroku, the command below deploys.
+          What you do inbetween is up to you!"
+      - heroku/deploy-via-git
 # We use workflows to orchestrate the jobs that we declared above.
 workflows:
   version: 2
@@ -106,3 +116,7 @@ workflows:
       - test:         # Then run test,
           requires:   # Test requires that build passes for it to run.
             - build   # Finally, run the build job.
+      - deploy:
+          required:
+            - test
+
