@@ -106,13 +106,6 @@ jobs:
       - run:
           name: DB migrate
           command: heroku run rails db:migrate --app $HEROKU_APP_NAME
-      - run:
-        name: heroku deploy
-        command: |
-          git push https://heroku:$HEROKU_API_KEY@git.heroku.com/$HEROKU_APP_NAME.git master
-      - run:
-          name: heroku maintenance off
-          command: heroku maintenance:off --app ${HEROKU_APP_NAME_PROD}
 # We use workflows to orchestrate the jobs that we declared above.
 workflows:
   version: 2
