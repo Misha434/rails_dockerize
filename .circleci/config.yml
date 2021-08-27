@@ -19,13 +19,13 @@ jobs:
 
     steps:
       - checkout # pull down our git code.
-      - ruby/install-deps # use the ruby orb to install dependencies
+      # - ruby/install-deps # use the ruby orb to install dependencies
       # use the node orb to install our packages
       # specifying that we use `yarn` and to cache dependencies with `yarn.lock`
       # learn more: https://circleci.com/docs/2.0/caching/
-      - node/install-packages:
-          pkg-manager: yarn
-          cache-key: "yarn.lock"
+      # - node/install-packages:
+      #     pkg-manager: yarn
+      #     cache-key: "yarn.lock"
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "Gemfile.lock" }}
@@ -67,10 +67,22 @@ jobs:
     # A series of steps to run, some are similar to those in "build".
     steps:
       - checkout
-      - ruby/install-deps
-      - node/install-packages:
-          pkg-manager: yarn
-          cache-key: "yarn.lock"
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "Gemfile.lock" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+      - run:
+          name: "Update Node.js"
+          command: |
+            curl -sSL "https://nodejs.org/dist/v14.17.5/node-v14.17.5-linux-x64.tar.xz" | sudo tar --strip-components=2 -xJ -C /usr/local/bin/ node-v14.17.5-linux-x64/bin/node
+      # runのたびに実行
+      - run:
+          name: install dependencies
+          command: |
+            gem install bundler -v 1.17.2
+            bundle install --jobs=4 --retry=3 --path vendor/bundle
+            yarn install --check-files
       # Here we make sure that the secondary container boots
       # up before we run operations on the database.
       - run:
