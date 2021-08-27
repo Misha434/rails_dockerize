@@ -101,7 +101,11 @@ jobs:
     steps:
       - checkout
       - heroku/install
-      - heroku/deploy-via-git
+      - heroku/deploy-via-git:
+          maintenance-mode: true
+      - run:
+          name: DB migrate
+          command: heroku run rails db:migrate --app $HEROKU_APP_NAME
 # We use workflows to orchestrate the jobs that we declared above.
 workflows:
   version: 2
@@ -111,4 +115,10 @@ workflows:
       - test:         # Then run test,
           requires:   # Test requires that build passes for it to run.
             - build   # Finally, run the build job.
-      - deploy
+      - deploy:
+          requires:
+            - build
+            - test
+          filters:
+            branches:
+              only: master
